@@ -3,7 +3,10 @@ private static final String COMMAND_NOT_FOUND_MSG = "%s: command not found";
 private static final String SHELL_BUILTIN = "%s is a shell builtin";
 private static final String NOT_FOUND = "%s: not found";
 
+private static String[] pathDirEnv;
+
 void main() {
+    pathDirEnv = Objects.toString(System.getenv("PATH"), "").split(File.pathSeparator);
     boolean exit = false;
     while (!exit) {
         IO.print(PROMPT);
@@ -37,13 +40,25 @@ private static Cmd createCmd(Command command, String[] lineArgs) {
             String value = Arrays.stream(lineArgs, 1, lineArgs.length).collect(Collectors.joining(" "));
             yield new Cmd.ECHO(value);
         }
-        case TYPE -> {
-            final String typedCommand = lineArgs[1];
-            final String message = Command.getByName(typedCommand)
-                    .map(c -> SHELL_BUILTIN.formatted(c.name().toLowerCase()))
-                    .orElse(NOT_FOUND.formatted(typedCommand));
-            yield new Cmd.TYPE(message);
-        }
+        case TYPE -> getTypeCmd(lineArgs);
     };
+}
+
+private static Cmd getTypeCmd(String[] lineArgs) {
+    final String typedArg = lineArgs[1];
+    final String value;
+    Optional<Command> commandOpt = Command.getByName(typedArg);
+    if (commandOpt.isPresent()) {
+        value = SHELL_BUILTIN.formatted(commandOpt.get().name().toLowerCase());
+    } else {
+        value = Arrays.stream(pathDirEnv)
+                .map(dir -> new File(dir, typedArg))
+                .filter(f -> f.exists() && f.canExecute())
+                .findFirst()
+                .map(f -> "%s is %s".formatted(typedArg, f.getPath()))
+                .orElse(NOT_FOUND.formatted(typedArg));
+
+    }
+    return new Cmd.TYPE(value);
 }
 
