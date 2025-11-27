@@ -1,5 +1,7 @@
 private static final String PROMPT = "$ ";
 private static final String COMMAND_NOT_FOUND_MSG = "%s: command not found";
+private static final String SHELL_BUILTIN = "%s is a shell builtin";
+private static final String NOT_FOUND = "%s: not found";
 
 void main() {
     boolean exit = false;
@@ -8,9 +10,10 @@ void main() {
         String line = IO.readln();
         Cmd cmd = parseCommand(line);
         switch (cmd) {
-            case Cmd.ECHO(String value) -> IO.println(value);
             case Cmd.ERR(String msg) -> IO.println(msg);
+            case Cmd.ECHO(String value) -> IO.println(value);
             case Cmd.EXIT _ -> exit = true;
+            case Cmd.TYPE(String msg) -> IO.println(msg);
         }
     }
 }
@@ -28,27 +31,19 @@ private static Cmd parseCommand(String line) {
 
 private static Cmd createCmd(Command command, String[] lineArgs) {
     return switch (command) {
+        case null -> new Cmd.ERR(COMMAND_NOT_FOUND_MSG.formatted(lineArgs[0]));
         case EXIT -> new Cmd.EXIT();
         case ECHO -> {
             String value = Arrays.stream(lineArgs, 1, lineArgs.length).collect(Collectors.joining(" "));
             yield new Cmd.ECHO(value);
         }
-        case null -> new Cmd.ERR(COMMAND_NOT_FOUND_MSG.formatted(lineArgs[0]));
-    };
-}
-
-enum Command {
-    EXIT,
-    ECHO;
-
-    static Optional<Command> getByName(String name) {
-        if (name == null || name.isBlank()) {
-            return Optional.empty();
+        case TYPE -> {
+            final String typedCommand = lineArgs[1];
+            final String message = Command.getByName(typedCommand)
+                    .map(c -> SHELL_BUILTIN.formatted(c.name().toLowerCase()))
+                    .orElse(NOT_FOUND.formatted(typedCommand));
+            yield new Cmd.TYPE(message);
         }
-        String str = name.toUpperCase();
-        return Arrays.stream(Command.values())
-                .filter(cm -> cm.name().equals(str))
-                .findFirst();
-    }
+    };
 }
 
