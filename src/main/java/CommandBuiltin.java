@@ -1,17 +1,17 @@
 import java.util.Arrays;
 import java.util.Optional;
 
-public enum Command {
+public enum CommandBuiltin {
     EXIT,
     ECHO,
     TYPE;
 
-    public static Optional<Command> getByName(String name) {
+    public static Optional<CommandBuiltin> getByName(String name) {
         if (name == null || name.isBlank()) {
             return Optional.empty();
         }
         String str = name.toUpperCase();
-        return Arrays.stream(Command.values())
+        return Arrays.stream(CommandBuiltin.values())
                 .filter(cm -> cm.name().equals(str))
                 .findFirst();
     }
