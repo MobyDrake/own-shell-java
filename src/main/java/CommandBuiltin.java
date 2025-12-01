@@ -4,7 +4,8 @@ import java.util.Optional;
 public enum CommandBuiltin {
     EXIT,
     ECHO,
-    TYPE;
+    TYPE,
+    PWD;
 
     public static Optional<CommandBuiltin> getByName(String name) {
         if (name == null || name.isBlank()) {

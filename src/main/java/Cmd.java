@@ -5,4 +5,5 @@ public sealed interface Cmd {
     record ECHO(String value) implements Cmd {}
     record TYPE(String value) implements Cmd {}
     record EXECUTE(String[] lineArgs) implements Cmd {}
+    record PWD(String value) implements Cmd {}
 }

@@ -17,6 +17,7 @@ void main() {
             case Cmd.ECHO(String value) -> IO.println(value);
             case Cmd.EXIT _ -> exit = true;
             case Cmd.TYPE(String msg) -> IO.println(msg);
+            case Cmd.PWD(String value) -> IO.println(value);
             case Cmd.EXECUTE(String[] args) -> {
                 final String fileName = args[0];
                 Optional<File> optionalFile = findFileInPath(fileName);
@@ -50,6 +51,7 @@ private static Cmd createBuiltinCmd(final CommandBuiltin commandBuiltin, final S
             yield new Cmd.ECHO(value);
         }
         case TYPE -> getTypeCmd(lineArgs);
+        case PWD -> new Cmd.PWD(Path.of("").toAbsolutePath().toString());
     };
 }
 
@@ -60,8 +62,7 @@ private static Cmd getTypeCmd(final String[] lineArgs) {
     if (commandOpt.isPresent()) {
         value = SHELL_BUILTIN.formatted(commandOpt.get().name().toLowerCase());
     } else {
-        value = findFileInPath(typedArg)
-                .map(f -> "%s is %s".formatted(typedArg, f.getPath()))
+        value = findFileInPath(typedArg).map(f -> "%s is %s".formatted(typedArg, f.getPath()))
                 .orElse(NOT_FOUND.formatted(typedArg));
     }
     return new Cmd.TYPE(value);
