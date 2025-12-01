@@ -5,7 +5,8 @@ public enum CommandBuiltin {
     EXIT,
     ECHO,
     TYPE,
-    PWD;
+    PWD,
+    CD;
 
     public static Optional<CommandBuiltin> getByName(String name) {
         if (name == null || name.isBlank()) {

@@ -2,8 +2,12 @@ private static final String PROMPT = "$ ";
 private static final String COMMAND_NOT_FOUND_MSG = "%s: command not found";
 private static final String SHELL_BUILTIN = "%s is a shell builtin";
 private static final String NOT_FOUND = "%s: not found";
+private static final String NO_SUCH_FILE_OR_DIRECTORY = "cd: %s: No such file or directory";
+
+private static final Path HOME_PATH = Path.of("");
 
 private static String[] pathDirEnv;
+private static Path currentPath = HOME_PATH;
 
 void main() {
     pathDirEnv = Objects.toString(System.getenv("PATH"), "").split(File.pathSeparator);
@@ -25,6 +29,18 @@ void main() {
                     executeFile(args);
                 } else {
                     IO.println(NOT_FOUND.formatted(fileName));
+                }
+            }
+            case Cmd.CD(String value) -> {
+                if ("~".equals(value)) {
+                    currentPath = HOME_PATH;
+                } else {
+                    Path path = Path.of(value);
+                    if (Files.exists(path)) {
+                        currentPath = path;
+                    } else {
+                        IO.println(NO_SUCH_FILE_OR_DIRECTORY.formatted(value));
+                    }
                 }
             }
         }
@@ -51,7 +67,11 @@ private static Cmd createBuiltinCmd(final CommandBuiltin commandBuiltin, final S
             yield new Cmd.ECHO(value);
         }
         case TYPE -> getTypeCmd(lineArgs);
-        case PWD -> new Cmd.PWD(Path.of("").toAbsolutePath().toString());
+        case PWD -> new Cmd.PWD(currentPath.toAbsolutePath().toString());
+        case CD -> {
+            String value = Arrays.stream(lineArgs, 1, lineArgs.length).collect(Collectors.joining(" "));
+            yield new Cmd.CD(value);
+        }
     };
 }
 
