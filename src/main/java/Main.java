@@ -4,13 +4,14 @@ private static final String SHELL_BUILTIN = "%s is a shell builtin";
 private static final String NOT_FOUND = "%s: not found";
 private static final String NO_SUCH_FILE_OR_DIRECTORY = "cd: %s: No such file or directory";
 
-private static final Path HOME_PATH = Path.of("");
+private static final String[] PATH =
+        Objects.toString(System.getenv("PATH"), "").split(File.pathSeparator);
+private static final Path HOME_PATH =
+        Path.of(Objects.toString(System.getenv("HOME"), System.getProperty("user.home")));
 
-private static String[] pathDirEnv;
-private static Path currentPath = HOME_PATH;
+private static Path currentPath = Path.of("");
 
 void main() {
-    pathDirEnv = Objects.toString(System.getenv("PATH"), "").split(File.pathSeparator);
     boolean exit = false;
     while (!exit) {
         IO.print(PROMPT);
@@ -86,7 +87,7 @@ private static Cmd getTypeCmd(final String[] lineArgs) {
 }
 
 private static Optional<File> findFileInPath(final String fileName) {
-    return Arrays.stream(pathDirEnv)
+    return Arrays.stream(PATH)
                  .map(dir -> new File(dir, fileName))
                  .filter(f -> f.exists() && f.canExecute())
                  .findFirst();
