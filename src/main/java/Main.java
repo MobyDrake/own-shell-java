@@ -35,8 +35,8 @@ void main() {
                 if ("~".equals(value)) {
                     currentPath = HOME_PATH;
                 } else {
-                    Path path = Path.of(value);
-                    if (Files.exists(path)) {
+                    Path path = currentPath.resolve(value).toAbsolutePath().normalize();
+                    if (Files.isDirectory(path)) {
                         currentPath = path;
                     } else {
                         IO.println(NO_SUCH_FILE_OR_DIRECTORY.formatted(value));
@@ -54,8 +54,8 @@ private static Cmd parseCommand(final String line) {
     final String[] lineArgs = line.trim().split(" ");
     final String lineCmd = lineArgs[0];
     return CommandBuiltin.getByName(lineCmd)
-            .map(commandBuiltin -> createBuiltinCmd(commandBuiltin, lineArgs))
-            .orElseGet(() -> new Cmd.EXECUTE(lineArgs));
+                         .map(commandBuiltin -> createBuiltinCmd(commandBuiltin, lineArgs))
+                         .orElseGet(() -> new Cmd.EXECUTE(lineArgs));
 }
 
 private static Cmd createBuiltinCmd(final CommandBuiltin commandBuiltin, final String[] lineArgs) {
@@ -76,23 +76,20 @@ private static Cmd createBuiltinCmd(final CommandBuiltin commandBuiltin, final S
 }
 
 private static Cmd getTypeCmd(final String[] lineArgs) {
-    final String value;
     final String typedArg = lineArgs[1];
     Optional<CommandBuiltin> commandOpt = CommandBuiltin.getByName(typedArg);
-    if (commandOpt.isPresent()) {
-        value = SHELL_BUILTIN.formatted(commandOpt.get().name().toLowerCase());
-    } else {
-        value = findFileInPath(typedArg).map(f -> "%s is %s".formatted(typedArg, f.getPath()))
-                .orElse(NOT_FOUND.formatted(typedArg));
-    }
+    final String value = commandOpt.map(command -> SHELL_BUILTIN.formatted(command.name().toLowerCase()))
+                                   .orElseGet(() -> findFileInPath(typedArg)
+                                           .map(f -> "%s is %s".formatted(typedArg, f.getPath()))
+                                           .orElse(NOT_FOUND.formatted(typedArg)));
     return new Cmd.TYPE(value);
 }
 
 private static Optional<File> findFileInPath(final String fileName) {
     return Arrays.stream(pathDirEnv)
-            .map(dir -> new File(dir, fileName))
-            .filter(f -> f.exists() && f.canExecute())
-            .findFirst();
+                 .map(dir -> new File(dir, fileName))
+                 .filter(f -> f.exists() && f.canExecute())
+                 .findFirst();
 }
 
 private static void executeFile(final String[] args) {
@@ -111,4 +108,3 @@ private static void executeFile(final String[] args) {
         throw new RuntimeException(e);
     }
 }
-
