@@ -14,7 +14,7 @@ public enum CommandBuiltin {
         }
         String str = name.toUpperCase();
         return Arrays.stream(CommandBuiltin.values())
-                .filter(cm -> cm.name().equals(str))
-                .findFirst();
+                     .filter(cm -> cm.name().equals(str))
+                     .findFirst();
     }
 }
