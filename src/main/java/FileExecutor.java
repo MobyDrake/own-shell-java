@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.Optional;
 
 public final class FileExecutor {
@@ -14,8 +15,8 @@ public final class FileExecutor {
         this.fileManager = fileManager;
     }
 
-    public void executeFile(final String[] lineArgs) {
-        String fileName = lineArgs[0];
+    public void executeFile(final List<String> lineArgs) {
+        final String fileName = lineArgs.getFirst();
         Optional<File> fileOpt = fileManager.findFileInPath(fileName);
         if (fileOpt.isPresent()) {
             startProcess(lineArgs);
@@ -24,7 +25,7 @@ public final class FileExecutor {
         }
     }
 
-    private void startProcess(final String[] args) {
+    private void startProcess(final List<String> args) {
         try {
             ProcessBuilder pb = new ProcessBuilder(args);
             pb.redirectErrorStream(true); // Merges stderr into stdout

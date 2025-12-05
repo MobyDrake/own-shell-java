@@ -1,5 +1,5 @@
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -16,7 +16,7 @@ public final class CommandExecutor {
         this.fileManager = fileManager;
     }
 
-    public void executeCommand(CommandBuiltin commandBuiltin, String[] lineArgs) {
+    public void executeCommand(final CommandBuiltin commandBuiltin, final List<String> lineArgs) {
         Cmd cmd = createBuiltinCmd(commandBuiltin, lineArgs);
         switch (cmd) {
             case Cmd.EXIT _ -> System.exit(0);
@@ -36,17 +36,17 @@ public final class CommandExecutor {
         }
     }
 
-    private Cmd createBuiltinCmd(final CommandBuiltin commandBuiltin, final String[] lineArgs) {
+    private Cmd createBuiltinCmd(final CommandBuiltin commandBuiltin, final List<String> lineArgs) {
         return switch (commandBuiltin) {
             case EXIT -> new Cmd.EXIT();
             case ECHO -> {
-                String value = Arrays.stream(lineArgs, 1, lineArgs.length).collect(Collectors.joining(" "));
+                String value = lineArgs.stream().skip(1).collect(Collectors.joining(" "));
                 yield new Cmd.ECHO(value);
             }
-            case TYPE -> getTypeCmd(lineArgs[1]);
+            case TYPE -> getTypeCmd(lineArgs.get(1));
             case PWD -> new Cmd.PWD(fileManager.getCurrentPath().toString());
             case CD -> {
-                String value = Arrays.stream(lineArgs, 1, lineArgs.length).collect(Collectors.joining(" "));
+                String value = lineArgs.stream().skip(1).collect(Collectors.joining(" "));
                 yield new Cmd.CD(value);
             }
         };
